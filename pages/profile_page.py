@@ -1,5 +1,7 @@
 from .base_page import BasePage
 from locators.profile_page_locators import ProfilePageLocators
+from locators.main_page_locators import MainPageLocators
+from locators.login_page_locators import LoginPageLocators
 
 
 class ProfilePage(BasePage):
@@ -17,16 +19,13 @@ class ProfilePage(BasePage):
 
     def click_constructor_button(self):
         # Находим кнопку конструктора через главную страницу
-        from locators.main_page_locators import MainPageLocators
         self.click(MainPageLocators.CONSTRUCTOR_BUTTON)
 
     def click_stellar_burger_logo(self):
-        from locators.main_page_locators import MainPageLocators
         self.click(MainPageLocators.STELLAR_BURGER_LOGO)
 
     def is_profile_page_displayed(self):
         return self.is_element_present(ProfilePageLocators.PROFILE_HEADER)
 
     def is_logout_successful(self):
-        from locators.login_page_locators import LoginPageLocators
         return self.is_element_present(LoginPageLocators.LOGIN_HEADER)
