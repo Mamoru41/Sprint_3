@@ -4,15 +4,16 @@ from pages.main_page import MainPage
 
 
 class TestConstructor:
+    """Тесты конструктора бургеров"""
+
     @pytest.fixture(autouse=True)
     def setup(self, browser):
+        """Фикстура подготовки для каждого теста"""
         self.main_page = MainPage(browser)
         self.main_page.open_main_page()
-        yield
-        # Закрытие браузера будет handled в фикстуре browser
+        return  # Используем return вместо yield, если нет cleanup кода
 
-    @pytest.mark.parametrize('browser', ['chrome'], indirect=True)
-    def test_navigate_to_buns_section(self, browser):
+    def test_navigate_to_buns_section(self):
         """Тест перехода к разделу 'Булки'"""
         # Сначала переходим в другой раздел
         self.main_page.click_sauces_section()
@@ -21,15 +22,13 @@ class TestConstructor:
 
         assert self.main_page.is_section_active(MainPageLocators.BUNS_SECTION)
 
-    @pytest.mark.parametrize('browser', ['chrome'], indirect=True)
-    def test_navigate_to_sauces_section(self, browser):
+    def test_navigate_to_sauces_section(self):
         """Тест перехода к разделу 'Соусы'"""
         self.main_page.click_sauces_section()
 
         assert self.main_page.is_section_active(MainPageLocators.SAUCES_SECTION)
 
-    @pytest.mark.parametrize('browser', ['chrome'], indirect=True)
-    def test_navigate_to_fillings_section(self, browser):
+    def test_navigate_to_fillings_section(self):
         """Тест перехода к разделу 'Начинки'"""
         self.main_page.click_fillings_section()
 

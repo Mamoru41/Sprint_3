@@ -6,28 +6,38 @@ from pages.registration_page import RegistrationPage
 
 
 class TestRegistration:
-    @pytest.mark.parametrize('browser', ['chrome'], indirect=True)
-    def test_successful_registration(self, browser):
+    """Тесты регистрации пользователя"""
+
+    @pytest.fixture(autouse=True)
+    def setup(self, browser):
+        """Фикстура подготовки для каждого теста"""
+        self.registration_page = RegistrationPage(browser)
+        yield
+
+    def test_successful_registration(self):
         """Тест успешной регистрации с валидными данными"""
         user_data = generate_user_data()
-        registration_page = RegistrationPage(browser)
 
-        registration_page.open_registration_page()
-        registration_page.register_user(user_data['name'], user_data['email'], user_data['password'])
+        self.registration_page.open_registration_page()
+        self.registration_page.register_user(
+            user_data['name'],
+            user_data['email'],
+            user_data['password']
+        )
 
         # Проверяем редирект на главную страницу после успешной регистрации
-        assert registration_page.is_element_present(MainPageLocators.PLACE_ORDER_BUTTON)
-        browser.quit()
+        assert self.registration_page.is_element_present(MainPageLocators.PLACE_ORDER_BUTTON)
 
-    @pytest.mark.parametrize('browser', ['chrome'], indirect=True)
-    def test_registration_with_short_password_shows_error(self, browser):
+    def test_registration_with_short_password_shows_error(self):
         """Тест ошибки при регистрации с коротким паролем"""
         user_data = generate_user_data()
-        registration_page = RegistrationPage(browser)
 
-        registration_page.open_registration_page()
-        registration_page.register_user(user_data['name'], user_data['email'], user_data['short_password'])
+        self.registration_page.open_registration_page()
+        self.registration_page.register_user(
+            user_data['name'],
+            user_data['email'],
+            user_data['short_password']
+        )
 
         # Проверяем отображение ошибки
-        assert registration_page.is_element_present(RegistrationPageLocators.PASSWORD_ERROR)
-        browser.quit()
+        assert self.registration_page.is_element_present(RegistrationPageLocators.PASSWORD_ERROR)
