@@ -1,61 +1,39 @@
 import pytest
-from locators.main_page_locators import MainPageLocators
-from locators.profile_page_locators import ProfilePageLocators
-from locators.login_page_locators import LoginPageLocators
-from pages.main_page import MainPage
-from pages.profile_page import ProfilePage
-from pages.login_page import LoginPage
+import os
+import sys
+directory = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.dirname(directory))
+from selenium import webdriver
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
+from urls import *
+from locators import *
+from credentials import *
 
+# Тест на переход по кнопке "Личный кабинет"
+class TestNavigateToLK:
+    def test_navigate_to_lk(self, open_main_page_logged_in):
+        driver=open_main_page_logged_in
+        WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.order_button))
+        driver.find_element(*loc.lk_button).click()
+        assert WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.save_button))
 
-class TestNavigation:
-    """Тесты навигации по приложению"""
+# Тест на переход из личного кабинета в "Конструктор"
+class TestNavigateToKonstr:
+    def test_navigate_to_constr(self, open_main_page_logged_in):
+        driver=open_main_page_logged_in
+        WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.order_button))
+        driver.find_element(*loc.lk_button).click()
+        WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.save_button))
+        driver.find_element(*loc.logo_button).click()
+        assert WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.order_button))
 
-    @pytest.fixture(autouse=True)
-    def setup(self, browser, test_user_credentials):
-        """Фикстура подготовки для каждого теста"""
-        self.main_page = MainPage(browser)
-        self.login_page = LoginPage(browser)
-        self.profile_page = ProfilePage(browser)
-        self.email = test_user_credentials["email"]
-        self.password = test_user_credentials["password"]
-
-        # Логинимся перед каждым тестом (кроме logout)
-        self.main_page.open_main_page()
-        self.main_page.click_login_button()
-        self.login_page.login(self.email, self.password)
-        yield
-
-    def test_navigate_to_personal_account(self):
-        """Тест перехода в личный кабинет"""
-        self.main_page.click_personal_account_button()
-        assert self.profile_page.is_profile_page_displayed()
-
-    def test_navigate_from_profile_to_constructor_via_button(self):
-        """Тест перехода из личного кабинета в конструктор через кнопку"""
-        # Переходим в личный кабинет
-        self.main_page.click_personal_account_button()
-        assert self.profile_page.is_profile_page_displayed()
-
-        # Возвращаемся в конструктор через кнопку
-        self.profile_page.click_constructor_button()
-        assert self.main_page.is_element_present(MainPageLocators.PLACE_ORDER_BUTTON)
-
-    def test_navigate_from_profile_to_constructor_via_logo(self):
-        """Тест перехода из личного кабинета в конструктор через логотип"""
-        # Переходим в личный кабинет
-        self.main_page.click_personal_account_button()
-        assert self.profile_page.is_profile_page_displayed()
-
-        # Возвращаемся в конструктор через логотип
-        self.profile_page.click_stellar_burger_logo()
-        assert self.main_page.is_element_present(MainPageLocators.PLACE_ORDER_BUTTON)
-
-    def test_logout_from_account(self):
-        """Тест выхода из аккаунта"""
-        # Переходим в личный кабинет
-        self.main_page.click_personal_account_button()
-        assert self.profile_page.is_profile_page_displayed()
-
-        # Выходим из аккаунта
-        self.profile_page.click_logout_button()
-        assert self.login_page.is_element_present(LoginPageLocators.LOGIN_HEADER)
+# Тест на выход из аккаунта
+class TestExitAccount:
+    def test_exit_account(self, open_main_page_logged_in):
+        driver=open_main_page_logged_in
+        WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.order_button))
+        driver.find_element(*loc.lk_button).click()
+        WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.save_button))
+        driver.find_element(*loc.exit_button).click()
+        assert WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.login_button))

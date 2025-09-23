@@ -1,35 +1,43 @@
 import pytest
-from locators.main_page_locators import MainPageLocators
-from pages.main_page import MainPage
+import os
+import sys
+directory = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.dirname(directory))
+from selenium import webdriver
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
+from urls import *
+from locators import *
+from credentials import *
 
+# Тест на переход по кнопке "Булки" в конструкторе на гравной странице
+class TestBulkiTab:
+    def test_bulki_tab(self, open_main_page_logged_in):
+        driver=open_main_page_logged_in
+        WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.order_button))
+        driver.find_element(*loc.sousy_tab).click()
+        WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.active_tab))
+        driver.find_element(*loc.bulki_tab).click()
+        tab_element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.active_tab))
+        assert tab_element.is_displayed()
+        assert WebDriverWait(driver, 10).until(EC.text_to_be_present_in_element(loc.active_tab,'Булки'))
 
-class TestConstructor:
-    """Тесты конструктора бургеров"""
+# Тест на переход по кнопке "Соусы" в конструкторе на гравной странице
+class TestSousTab:
+    def test_sous_tab(self, open_main_page_logged_in):
+        driver=open_main_page_logged_in
+        WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.order_button))
+        driver.find_element(*loc.sousy_tab).click()
+        tab_element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.active_tab))
+        assert tab_element.is_displayed()
+        assert 'Соусы' in tab_element.text
 
-    @pytest.fixture(autouse=True)
-    def setup(self, browser):
-        """Фикстура подготовки для каждого теста"""
-        self.main_page = MainPage(browser)
-        self.main_page.open_main_page()
-        return  # Используем return вместо yield, если нет cleanup кода
-
-    def test_navigate_to_buns_section(self):
-        """Тест перехода к разделу 'Булки'"""
-        # Сначала переходим в другой раздел
-        self.main_page.click_sauces_section()
-        # Затем возвращаемся к булкам
-        self.main_page.click_buns_section()
-
-        assert self.main_page.is_section_active(MainPageLocators.BUNS_SECTION)
-
-    def test_navigate_to_sauces_section(self):
-        """Тест перехода к разделу 'Соусы'"""
-        self.main_page.click_sauces_section()
-
-        assert self.main_page.is_section_active(MainPageLocators.SAUCES_SECTION)
-
-    def test_navigate_to_fillings_section(self):
-        """Тест перехода к разделу 'Начинки'"""
-        self.main_page.click_fillings_section()
-
-        assert self.main_page.is_section_active(MainPageLocators.FILLINGS_SECTION)
+# Тест на переход по кнопке "Начинки" в конструкторе на гравной странице
+class TestNachTab:
+    def test_nach_tab(self, open_main_page_logged_in):
+        driver=open_main_page_logged_in
+        WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.order_button))
+        driver.find_element(*loc.nachinki_tab).click()
+        tab_element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.active_tab))
+        assert tab_element.is_displayed()
+        assert 'Начинки' in tab_element.text

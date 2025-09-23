@@ -1,53 +1,59 @@
 import pytest
-from locators.main_page_locators import MainPageLocators
-from pages.main_page import MainPage
-from pages.login_page import LoginPage
-from pages.registration_page import RegistrationPage
-from pages.forgot_password_page import ForgotPasswordPage
+import os
+import sys
+directory = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.dirname(directory))
+from selenium import webdriver
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
+from urls import *
+from locators import *
+from credentials import *
 
+# Тест на вход по кнопке "Войти в аккаунт"
+class TestAccountEntrance:
+    def test_account_entrance(self, open_main_page):
+        driver=open_main_page
+        WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.enter_button))
+        driver.find_element(*loc.enter_button).click()
+        WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.login_button))
+        driver.find_element(*loc.login_email_input).send_keys(cred.my_email)
+        driver.find_element(*loc.login_password_input).send_keys(cred.my_password)
+        driver.find_element(*loc.login_button).click()
+        assert WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.order_button))
 
-class TestLogin:
-    """Тесты авторизации пользователя"""
+# Тест на вход по кнопке "Личный кабинет"
+class TestLKEntrance:
+    def test_lk_entrance(self, open_main_page):
+        driver=open_main_page
+        WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.enter_button))
+        driver.find_element(*loc.lk_button).click()
+        WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.login_button))
+        driver.find_element(*loc.login_email_input).send_keys(cred.my_email)
+        driver.find_element(*loc.login_password_input).send_keys(cred.my_password)
+        driver.find_element(*loc.login_button).click()
+        assert WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.order_button))
 
-    @pytest.fixture(autouse=True)
-    def setup(self, browser, test_user_credentials):
-        """Фикстура подготовки для каждого теста"""
-        self.main_page = MainPage(browser)
-        self.login_page = LoginPage(browser)
-        self.registration_page = RegistrationPage(browser)
-        self.forgot_password_page = ForgotPasswordPage(browser)
-        self.email = test_user_credentials["email"]
-        self.password = test_user_credentials["password"]
-        yield
+# Тест на вход по кнопке "Войти" на странице регистрации
+class TestEntranceFromRegisterPage:
+    def test_entrance_from_register_page(self, open_registr_page):
+        driver=open_registr_page
+        WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.registration_confirm_button))
+        driver.find_element(*loc.login_from_register_button).click()
+        WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.login_button))
+        driver.find_element(*loc.login_email_input).send_keys(cred.my_email)
+        driver.find_element(*loc.login_password_input).send_keys(cred.my_password)
+        driver.find_element(*loc.login_button).click()
+        assert WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.order_button))
 
-    def test_login_from_main_page_button(self):
-        """Тест входа через кнопку 'Войти в аккаунт' на главной"""
-        self.main_page.open_main_page()
-        self.main_page.click_login_button()
-        self.login_page.login(self.email, self.password)
-
-        assert self.main_page.is_element_present(MainPageLocators.PLACE_ORDER_BUTTON)
-
-    def test_login_from_personal_account_button(self):
-        """Тест входа через кнопку 'Личный кабинет'"""
-        self.main_page.open_main_page()
-        self.main_page.click_personal_account_button()
-        self.login_page.login(self.email, self.password)
-
-        assert self.main_page.is_element_present(MainPageLocators.PLACE_ORDER_BUTTON)
-
-    def test_login_from_registration_form(self):
-        """Тест входа через кнопку в форме регистрации"""
-        self.registration_page.open_registration_page()
-        self.registration_page.click_login_link()
-        self.login_page.login(self.email, self.password)
-
-        assert self.main_page.is_element_present(MainPageLocators.PLACE_ORDER_BUTTON)
-
-    def test_login_from_forgot_password_form(self):
-        """Тест входа через кнопку в форме восстановления пароля"""
-        self.forgot_password_page.open_forgot_password_page()
-        self.forgot_password_page.click_login_link()
-        self.login_page.login(self.email, self.password)
-
-        assert self.main_page.is_element_present(MainPageLocators.PLACE_ORDER_BUTTON)
+# Тест на вход по кнопке "Войти" на странице восстановления пароля
+class TestEntranceFromForgotPass:
+    def test_entrance_from_forgot_pass(self, open_forgot_pass_page):
+        driver=open_forgot_pass_page
+        WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.recover_button))
+        driver.find_element(*loc.login_from_register_button).click()
+        WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.login_button))
+        driver.find_element(*loc.login_email_input).send_keys(cred.my_email)
+        driver.find_element(*loc.login_password_input).send_keys(cred.my_password)
+        driver.find_element(*loc.login_button).click()
+        assert WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.order_button))
