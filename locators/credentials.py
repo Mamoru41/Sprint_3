@@ -1,15 +1,19 @@
-from selenium.webdriver.common.by import By
+class Credentials:
+    def __init__(self):
+        self.my_email = "test@example.com"
+        self.my_password = "password123"
+        self.name = "Test User"
+        self.incorrect_pass = "123"
+
+    def email(self):
+        # Генерация уникального email для регистрации
+        import random
+        return f"test{random.randint(1000, 9999)}@example.com"
+
+    def password(self):
+        # Генерация уникального пароля для регистрации
+        import random
+        return f"password{random.randint(1000, 9999)}"
 
 
-class ForgotPasswordPageLocators:
-    # Заголовок страницы восстановления пароля
-    FORGOT_PASSWORD_HEADER = (By.XPATH, ".//h2[text()='Восстановление пароля']")
-
-    # Поле ввода email
-    EMAIL_INPUT = (By.XPATH, ".//label[text()='Email']/following-sibling::input")
-
-    # Кнопка "Восстановить"
-    RESTORE_BUTTON = (By.XPATH, ".//button[text()='Восстановить']")
-
-    # Ссылка "Войти" (вспомнил пароль)
-    LOGIN_LINK = (By.XPATH, ".//a[text()='Войти']")
+cred = Credentials()
