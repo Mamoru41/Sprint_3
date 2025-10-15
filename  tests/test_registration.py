@@ -74,7 +74,7 @@ def test_successful_registration_format_2(self, driver):
 
     # Генерируем УНИКАЛЬНЫЙ email каждый раз
     random_num = random.randint(1000, 9999)  # Увеличиваем диапазон
-    email = f"ilya_kartashev_{random_num}@yandex.ru"  # Меняем шаблон
+    email = f"mamoru40{random_num}@yandex.ru"  # Меняем шаблон
 
     # Ожидаем появление полей ввода
     WebDriverWait(driver, 10).until(
@@ -83,7 +83,7 @@ def test_successful_registration_format_2(self, driver):
 
 # Заполняем форму корректными данными
 all_inputs = driver.find_elements(By.TAG_NAME, "input")
-all_inputs[0].send_keys("Илья Карташев")
+all_inputs[0].send_keys("Александр_Гладышев")
 all_inputs[1].send_keys(email)  # Используем уникальный email!
 all_inputs[2].send_keys("qwerty123")
 
