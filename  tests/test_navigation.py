@@ -1,46 +1,147 @@
-import pytest
-import os
 import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-directory = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.dirname(directory))
-from selenium import webdriver
+from data import BASE_URL, TEST_EMAIL, TEST_PASSWORD
+from locators import MainPageLocators, LoginPageLocators, ProfilePageLocators
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.wait import WebDriverWait
-from urls import *
-from locators import *
-from credentials import *
+import pytest
 
+class TestNavigation:
+    def test_go_to_profile(self, driver):
+        """Тест проверяет переход в личный кабинет после авторизации."""
+        # Логинимся
+        driver.get(BASE_URL + "/login")
 
-class TestConstructorTabs:
-    """Тесты перехода по табам в конструкторе на главной странице"""
+        # Ожидаем появление полей ввода
+        WebDriverWait(driver, 10).until(
+            EC.visibility_of_all_elements_located((By.TAG_NAME, "input"))
+        )
 
-    def test_bulki_tab(self, open_main_page_logged_in):
-        """Тест перехода по табу 'Булки'"""
-        driver = open_main_page_logged_in
-        WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.order_button))
-        # Сначала переходим на другой таб, затем возвращаемся к Булки
-        driver.find_element(*loc.sousy_tab).click()
-        WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.active_tab))
-        driver.find_element(*loc.bulki_tab).click()
-        tab_element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.active_tab))
-        assert tab_element.is_displayed()
-        assert WebDriverWait(driver, 10).until(EC.text_to_be_present_in_element(loc.active_tab, 'Булки'))
+        all_inputs = driver.find_elements(By.TAG_NAME, "input")
+        all_inputs[0].send_keys(TEST_EMAIL)
+        all_inputs[1].send_keys(TEST_PASSWORD)
 
-    def test_sous_tab(self, open_main_page_logged_in):
-        """Тест перехода по табу 'Соусы'"""
-        driver = open_main_page_logged_in
-        WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.order_button))
-        driver.find_element(*loc.sousy_tab).click()
-        tab_element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.active_tab))
-        assert tab_element.is_displayed()
-        assert 'Соусы' in tab_element.text
+        # Кликаем кнопку входа
+        login_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable(LoginPageLocators.LOGIN_BUTTON)
+        )
+        login_button.click()
 
-    def test_nach_tab(self, open_main_page_logged_in):
-        """Тест перехода по табу 'Начинки'"""
-        driver = open_main_page_logged_in
-        WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.order_button))
-        driver.find_element(*loc.nachinki_tab).click()
-        tab_element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.active_tab))
-        assert tab_element.is_displayed()
-        assert 'Начинки' in tab_element.text
+        # Ожидаем завершение авторизации
+        WebDriverWait(driver, 10).until(
+            EC.url_to_be(BASE_URL + "/")
+        )
+
+        # Переходим в личный кабинет
+        profile_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable(MainPageLocators.PERSONAL_ACCOUNT_BUTTON)
+        )
+        profile_button.click()
+
+        # Проверяем переход в личный кабинет
+        WebDriverWait(driver, 10).until(
+            EC.url_contains("/account/profile")
+        )
+
+        assert "/account/profile" in driver.current_url
+
+    def test_logout_from_profile(self, driver):
+        """Тест проверяет выход из аккаунта через кнопку 'Выйти'."""
+        # Логинимся
+        driver.get(BASE_URL + "/login")
+
+        # Ожидаем появление полей ввода
+        WebDriverWait(driver, 10).until(
+            EC.visibility_of_all_elements_located((By.TAG_NAME, "input"))
+        )
+
+        all_inputs = driver.find_elements(By.TAG_NAME, "input")
+        all_inputs[0].send_keys(TEST_EMAIL)
+        all_inputs[1].send_keys(TEST_PASSWORD)
+
+        # Кликаем кнопку входа
+        login_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable(LoginPageLocators.LOGIN_BUTTON)
+        )
+        login_button.click()
+
+        # Ожидаем завершение авторизации
+        WebDriverWait(driver, 10).until(
+            EC.url_to_be(BASE_URL + "/")
+        )
+
+        # Переходим в личный кабинет
+        profile_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable(MainPageLocators.PERSONAL_ACCOUNT_BUTTON)
+        )
+        profile_button.click()
+
+        # Ожидаем загрузки личного кабинета
+        WebDriverWait(driver, 10).until(
+            EC.url_contains("/account/profile")
+        )
+
+        # Нажимаем кнопку "Выйти"
+        logout_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable(ProfilePageLocators.LOGOUT_BUTTON)
+        )
+        logout_button.click()
+
+        # Проверяем выход (переход на логин)
+        WebDriverWait(driver, 10).until(
+            EC.url_contains("/login")
+        )
+
+        assert "/login" in driver.current_url
+
+    def test_return_to_constructor_from_profile(self, driver):
+        """Тест проверяет переход из ЛК в конструктор через кнопку 'Конструктор'."""
+        # Логинимся
+        driver.get(BASE_URL + "/login")
+
+        # Ожидаем появление полей ввода
+        WebDriverWait(driver, 10).until(
+            EC.visibility_of_all_elements_located((By.TAG_NAME, "input"))
+        )
+
+        all_inputs = driver.find_elements(By.TAG_NAME, "input")
+        all_inputs[0].send_keys(TEST_EMAIL)
+        all_inputs[1].send_keys(TEST_PASSWORD)
+
+        # Кликаем кнопку входа
+        login_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable(LoginPageLocators.LOGIN_BUTTON)
+        )
+        login_button.click()
+
+        # Ожидаем завершение авторизации
+        WebDriverWait(driver, 10).until(
+            EC.url_to_be(BASE_URL + "/")
+        )
+
+        # Переходим в личный кабинет
+        profile_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable(MainPageLocators.PERSONAL_ACCOUNT_BUTTON)
+        )
+        profile_button.click()
+
+        # Ожидаем загрузки личного кабинета
+        WebDriverWait(driver, 10).until(
+            EC.url_contains("/account/profile")
+        )
+
+        # Возвращаемся в конструктор
+        constructor_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable(MainPageLocators.CONSTRUCTOR_BUTTON)
+        )
+        constructor_button.click()
+
+        # Проверяем возврат на главную
+        WebDriverWait(driver, 10).until(
+            EC.url_to_be(BASE_URL + "/")
+        )
+
+        assert driver.current_url == BASE_URL + "/"

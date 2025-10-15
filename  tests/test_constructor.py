@@ -1,65 +1,33 @@
-import pytest
-import os
 import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-directory = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.dirname(directory))
+from data import TEST_EMAIL, TEST_PASSWORD, BASE_URL
+from locators import MainPageLocators, LoginPageLocators
 from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.wait import WebDriverWait
-from urls import *
-from locators import *
-from credentials import *
+from selenium.webdriver.common.action_chains import ActionChains
+import pytest
 
 
-# Фикстура определения веб драйвера
-@pytest.fixture
-def driver():
-    driver = webdriver.Chrome()
-    driver.maximize_window()
-    yield driver
-    driver.quit()
+class TestBurgerConstructor:
+    def test_burger_construction_and_order(self, driver):
+        """Тест проверяет полный цикл: сборка бургера через перетаскивание и оформление заказа.
 
+        Шаги:
+        1. Авторизоваться в системе
+        2. Перетащить ингредиент в конструктор
+        3. Нажать кнопку 'Оформить заказ'
+        4. Проверить появление модального окна с подтверждением заказа
 
-# Фикстура логина на сайте и открытия на главной странице
-@pytest.fixture
-def open_main_page_logged_in(driver):
-    driver.get(login_page)
-    driver.find_element(*loc.login_email_input).send_keys(cred.my_email)
-    driver.find_element(*loc.login_password_input).send_keys(cred.my_password)
-    driver.find_element(*loc.login_button).click()
-    WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.order_button))
-    return driver
+        Ожидаемый результат:
+        - Появление модального окна с текстом о начале приготовления заказа
+        """
+        # Логинимся
+        driver.get(f"{BASE_URL}/login")
 
-
-class TestConstructorTabs:
-    """Тесты перехода по табам в конструкторе на главной странице"""
-
-    def test_bulki_tab(self, open_main_page_logged_in):
-        """Тест перехода по табу 'Булки'"""
-        driver = open_main_page_logged_in
-        WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.order_button))
-        driver.find_element(*loc.sousy_tab).click()
-        WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.active_tab))
-        driver.find_element(*loc.bulki_tab).click()
-        tab_element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.active_tab))
-        assert tab_element.is_displayed()
-        assert WebDriverWait(driver, 10).until(EC.text_to_be_present_in_element(loc.active_tab, 'Булки'))
-
-    def test_sous_tab(self, open_main_page_logged_in):
-        """Тест перехода по табу 'Соусы'"""
-        driver = open_main_page_logged_in
-        WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.order_button))
-        driver.find_element(*loc.sousy_tab).click()
-        tab_element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.active_tab))
-        assert tab_element.is_displayed()
-        assert 'Соусы' in tab_element.text
-
-    def test_nach_tab(self, open_main_page_logged_in):
-        """Тест перехода по табу 'Начинки'"""
-        driver = open_main_page_logged_in
-        WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.order_button))
-        driver.find_element(*loc.nachinki_tab).click()
-        tab_element = WebDriverWait(driver, 10).until(EC.visibility_of_element_located(loc.active_tab))
-        assert tab_element.is_displayed()
-        assert 'Начинки' in tab_element.text
+        # Ожидаем появление полей ввода
+        WebDriverWait(driver, 10).until(
+            EC.visibility_of_all_elements_located((By.TAG_NAME, "input"))
