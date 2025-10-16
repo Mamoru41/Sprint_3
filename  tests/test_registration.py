@@ -1,106 +1,86 @@
 import sys
 import os
+import pytest
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from data import BASE_URL
 from locators import RegistrationPageLocators
+from helpers import generate_email, generate_password, generate_name
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import random
-import pytest
 
 
 class TestRegistration:
     def test_successful_registration_format_1(self, driver):
-        """Тест проверяет успешную регистрацию с валидными данными.
-
-        Для регистрации используется уникальный email по формату:
-        имя_фамилия_номеркогорты_3цифры@домен (требование задания)
-        Это гарантирует, что каждый запуск теста создает нового пользователя.
-        """
+        """Тест проверяет успешную регистрацию с валидными данными."""
         driver.get(BASE_URL + "/register")
 
-        # Ожидаем загрузки страницы регистрации
-        WebDriverWait(driver, 10).until(
-            EC.url_contains("/register")
+        WebDriverWait(driver, 10).until(EC.url_contains("/register"))
+        assert "/register" in driver.current_url, "Не загрузилась страница регистрации"
+
+        # Генерируем уникальные данные
+        name = generate_name()
+        email = generate_email()
+        password = generate_password()
+
+        # Заполняем форму
+        name_input = WebDriverWait(driver, 10).until(
+            EC.visibility_of_element_located(RegistrationPageLocators.NAME_INPUT)
         )
+        email_input = driver.find_element(*RegistrationPageLocators.EMAIL_INPUT)
+        password_input = driver.find_element(*RegistrationPageLocators.PASSWORD_INPUT)
 
-        # Генерируем уникальный email по формату из задания
-        random_num = random.randint(100, 999)  # 3 цифры
-        email = f"mamoru40{random_num}@yandex.ru"
+        name_input.send_keys(name)
+        email_input.send_keys(email)
+        password_input.send_keys(password)
 
-        # Ожидаем появление полей ввода
+        register_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable(RegistrationPageLocators.REGISTER_BUTTON)
+        )
+        register_button.click()
 
+        WebDriverWait(driver, 10).until(EC.url_contains("/login"))
+        assert "/login" in driver.current_url, f"Ожидался переход на логин, но URL: {driver.current_url}"
 
-@ @-36
+        login_form = WebDriverWait(driver, 10).until(
+            EC.visibility_of_element_located(RegistrationPageLocators.LOGIN_FORM)
+        )
+        assert login_form.is_displayed(), "Форма логина не отображается после регистрации"
 
-, 7 + 42, 7 @ @
+    def test_successful_registration_format_2(self, driver):
+        """Тест проверяет успешную регистрацию с другим форматом email."""
+        driver.get(BASE_URL + "/register")
 
+        WebDriverWait(driver, 10).until(EC.url_contains("/register"))
+        assert "/register" in driver.current_url, "Не загрузилась страница регистрации"
 
-def test_successful_registration(driver):
-    # Нажимаем кнопку регистрации
-    register_button = WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable(RegistrationPageLocators.REGISTER_BUTTON)
-    )
-    register_button.click()
+        # Генерируем уникальные данные с другим форматом
+        name = generate_name()
+        email = generate_email()  # Используем стандартный генератор
+        password = generate_password()
 
+        # Заполняем форму
+        name_input = WebDriverWait(driver, 10).until(
+            EC.visibility_of_element_located(RegistrationPageLocators.NAME_INPUT)
+        )
+        email_input = driver.find_element(*RegistrationPageLocators.EMAIL_INPUT)
+        password_input = driver.find_element(*RegistrationPageLocators.PASSWORD_INPUT)
 
-@ @-46
+        name_input.send_keys(name)
+        email_input.send_keys(email)
+        password_input.send_keys(password)
 
-, 11 + 52, 49 @ @
+        register_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable(RegistrationPageLocators.REGISTER_BUTTON)
+        )
+        register_button.click()
 
+        WebDriverWait(driver, 10).until(EC.url_contains("/login"))
+        assert "/login" in driver.current_url, f"Ожидался переход на логин, но URL: {driver.current_url}"
 
-def test_successful_registration(driver):
-    )
-
-    assert "/login" in driver.current_url, f"Ожидался переход на логин, но URL: {driver.current_url}"
-
-
-
-def test_successful_registration_format_2(self, driver):
-    """Тест проверяет успешную регистрацию с валидными данными.
-
-    Для регистрации используется уникальный email каждый раз,
-    чтобы избежать конфликта с уже существующими пользователями.
-    """
-    driver.get(BASE_URL + "/register")
-
-    # Ожидаем загрузки страницы регистрации
-    WebDriverWait(driver, 10).until(
-        EC.url_contains("/register")
-    )
-
-    # Генерируем УНИКАЛЬНЫЙ email каждый раз
-    random_num = random.randint(1000, 9999)  # Увеличиваем диапазон
-    email = f"mamoru40{random_num}@yandex.ru"  # Меняем шаблон
-
-    # Ожидаем появление полей ввода
-    WebDriverWait(driver, 10).until(
-        EC.visibility_of_all_elements_located((By.TAG_NAME, "input"))
-    )
-
-# Заполняем форму корректными данными
-all_inputs = driver.find_elements(By.TAG_NAME, "input")
-all_inputs[0].send_keys("Александр_Гладышев")
-all_inputs[1].send_keys(email)  # Используем уникальный email!
-all_inputs[2].send_keys("qwerty123")
-
-# Нажимаем кнопку регистрации
-register_button = WebDriverWait(driver, 10).until(
-    EC.element_to_be_clickable(RegistrationPageLocators.REGISTER_BUTTON)
-)
-register_button.click()
-
-# ПРОВЕРЯЕМ переход на логин
-WebDriverWait(driver, 10).until(
-    EC.url_contains("/login")
-)
-
-assert "/login" in driver.current_url, f"Ожидался переход на логин, но URL: {driver.current_url}"
-
-# Команды для запуска тестов:
-# python -m pytest tests/test_registration.py::TestRegistration::test_successful_registration_format_1 -v
-# python -m pytest tests/test_registration.py::TestRegistration::test_successful_registration_format_2 -v
-# python -m pytest tests/test_registration.py -v  # запуск всех тестов класса
+        login_form = WebDriverWait(driver, 10).until(
+            EC.visibility_of_element_located(RegistrationPageLocators.LOGIN_FORM)
+        )
+        assert login_form.is_displayed(), "Форма логина не отображается после регистрации"

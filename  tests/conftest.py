@@ -1,12 +1,18 @@
 import pytest
 from selenium import webdriver
-from utils import generate_email, generate_password
-from data import BASE_URL  # Импортируем напрямую BASE_URL
+from helpers import generate_email, generate_password
 
 @pytest.fixture
 def driver():
-@@ -19,4 +20,4 @@ def random_password():
+    driver = webdriver.Chrome()
+    driver.maximize_window()
+    yield driver
+    driver.quit()
 
 @pytest.fixture
-def base_url():
-    return BASE_URL  # Используем импортированную константу
+def random_email():
+    return generate_email()
+
+@pytest.fixture
+def random_password():
+    return generate_password()
