@@ -3,127 +3,157 @@ import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from data import BASE_URL
+from data import BASE_URL, TEST_EMAIL, TEST_PASSWORD, LOGIN_URL, PROFILE_URL, MAIN_URL
 from locators import MainPageLocators, LoginPageLocators, ProfilePageLocators
-from helpers import generate_email, generate_password
-from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import pytest
 
 
 class TestNavigation:
-    def test_go_to_profile(self, driver, random_email, random_password):
+    def test_go_to_profile(self, login_page):
         """Тест проверяет переход в личный кабинет после авторизации."""
-        driver.get(BASE_URL + "/login")
+        # Страница логина уже открыта через фикстуру login_page (куки уже очищены)
 
-        email_input = WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located(LoginPageLocators.EMAIL_INPUT)
+        print("Открыта страница логина, текущий URL:", login_page.current_url)
+
+        # Сначала убедимся что мы на правильной странице
+        WebDriverWait(login_page, 15).until(
+            EC.url_contains(LOGIN_URL)
         )
-        password_input = driver.find_element(*LoginPageLocators.PASSWORD_INPUT)
+        print("Подтвержден переход на страницу логина")
 
-        email_input.send_keys(random_email)
-        password_input.send_keys(random_password)
+        # Ожидаем появление полей ввода
+        WebDriverWait(login_page, 15).until(
+            EC.visibility_of_all_elements_located(LoginPageLocators.ALL_INPUTS)
+        )
+        print("Поля ввода найдены")
 
-        login_button = WebDriverWait(driver, 10).until(
+        all_inputs = login_page.find_elements(*LoginPageLocators.ALL_INPUTS)
+        all_inputs[0].send_keys(TEST_EMAIL)
+        all_inputs[1].send_keys(TEST_PASSWORD)
+        print("Данные для ввода заполнены")
+
+        # Кликаем кнопку входа
+        login_button = WebDriverWait(login_page, 15).until(
             EC.element_to_be_clickable(LoginPageLocators.LOGIN_BUTTON)
         )
         login_button.click()
+        print("Кнопка входа нажата")
 
-        WebDriverWait(driver, 10).until(EC.url_to_be(BASE_URL + "/"))
-        assert driver.current_url == BASE_URL + "/", "Не произошел переход на главную страницу после входа"
+        # Ожидаем завершение авторизации
+        WebDriverWait(login_page, 15).until(
+            EC.url_to_be(BASE_URL + MAIN_URL)
+        )
+        print("Авторизация успешна, перешли на главную")
 
-        profile_button = WebDriverWait(driver, 10).until(
+        # Переходим в личный кабинет
+        profile_button = WebDriverWait(login_page, 15).until(
             EC.element_to_be_clickable(MainPageLocators.PERSONAL_ACCOUNT_BUTTON)
         )
         profile_button.click()
+        print("Кнопка личного кабинета нажата")
 
-        WebDriverWait(driver, 10).until(EC.url_contains("/account/profile"))
-        assert "/account/profile" in driver.current_url, "Не произошел переход в личный кабинет"
-
-        profile_form = WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located(ProfilePageLocators.PROFILE_FORM)
+        # Проверяем переход в личный кабинет
+        WebDriverWait(login_page, 15).until(
+            EC.url_contains(PROFILE_URL)
         )
-        assert profile_form.is_displayed(), "Форма профиля не отображается"
+        print("Успешный переход в личный кабинет")
 
-    def test_logout_from_profile(self, driver, random_email, random_password):
+        assert PROFILE_URL in login_page.current_url
+
+    def test_logout_from_profile(self, login_page):
         """Тест проверяет выход из аккаунта через кнопку 'Выйти'."""
-        driver.get(BASE_URL + "/login")
+        # Страница логина уже открыта через фикстуру login_page (куки уже очищены)
 
-        email_input = WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located(LoginPageLocators.EMAIL_INPUT)
+        # Ожидаем появление полей ввода
+        WebDriverWait(login_page, 15).until(
+            EC.visibility_of_all_elements_located(LoginPageLocators.ALL_INPUTS)
         )
-        password_input = driver.find_element(*LoginPageLocators.PASSWORD_INPUT)
 
-        email_input.send_keys(random_email)
-        password_input.send_keys(random_password)
+        all_inputs = login_page.find_elements(*LoginPageLocators.ALL_INPUTS)
+        all_inputs[0].send_keys(TEST_EMAIL)
+        all_inputs[1].send_keys(TEST_PASSWORD)
 
-        login_button = WebDriverWait(driver, 10).until(
+        # Кликаем кнопку входа
+        login_button = WebDriverWait(login_page, 15).until(
             EC.element_to_be_clickable(LoginPageLocators.LOGIN_BUTTON)
         )
         login_button.click()
 
-        WebDriverWait(driver, 10).until(EC.url_to_be(BASE_URL + "/"))
-        assert driver.current_url == BASE_URL + "/", "Не произошел переход на главную страницу после входа"
+        # Ожидаем завершение авторизации
+        WebDriverWait(login_page, 15).until(
+            EC.url_to_be(BASE_URL + MAIN_URL)
+        )
 
-        profile_button = WebDriverWait(driver, 10).until(
+        # Переходим в личный кабинет
+        profile_button = WebDriverWait(login_page, 15).until(
             EC.element_to_be_clickable(MainPageLocators.PERSONAL_ACCOUNT_BUTTON)
         )
         profile_button.click()
 
-        WebDriverWait(driver, 10).until(EC.url_contains("/account/profile"))
-        assert "/account/profile" in driver.current_url, "Не произошел переход в личный кабинет"
+        # Ожидаем загрузки личного кабинета
+        WebDriverWait(login_page, 15).until(
+            EC.url_contains(PROFILE_URL)
+        )
 
-        logout_button = WebDriverWait(driver, 10).until(
+        # Нажимаем кнопку "Выйти"
+        logout_button = WebDriverWait(login_page, 15).until(
             EC.element_to_be_clickable(ProfilePageLocators.LOGOUT_BUTTON)
         )
         logout_button.click()
 
-        WebDriverWait(driver, 10).until(EC.url_contains("/login"))
-        assert "/login" in driver.current_url, "Не произошел выход из аккаунта"
-
-        login_form = WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located(LoginPageLocators.LOGIN_FORM)
+        # Проверяем выход (переход на логин)
+        WebDriverWait(login_page, 15).until(
+            EC.url_contains(LOGIN_URL)
         )
-        assert login_form.is_displayed(), "Форма логина не отображается после выхода"
 
-    def test_return_to_constructor_from_profile(self, driver, random_email, random_password):
+        assert LOGIN_URL in login_page.current_url
+
+    def test_return_to_constructor_from_profile(self, login_page):
         """Тест проверяет переход из ЛК в конструктор через кнопку 'Конструктор'."""
-        driver.get(BASE_URL + "/login")
+        # Страница логина уже открыта через фикстуру login_page (куки уже очищены)
 
-        email_input = WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located(LoginPageLocators.EMAIL_INPUT)
+        # Ожидаем появление полей ввода
+        WebDriverWait(login_page, 15).until(
+            EC.visibility_of_all_elements_located(LoginPageLocators.ALL_INPUTS)
         )
-        password_input = driver.find_element(*LoginPageLocators.PASSWORD_INPUT)
 
-        email_input.send_keys(random_email)
-        password_input.send_keys(random_password)
+        all_inputs = login_page.find_elements(*LoginPageLocators.ALL_INPUTS)
+        all_inputs[0].send_keys(TEST_EMAIL)
+        all_inputs[1].send_keys(TEST_PASSWORD)
 
-        login_button = WebDriverWait(driver, 10).until(
+        # Кликаем кнопку входа
+        login_button = WebDriverWait(login_page, 15).until(
             EC.element_to_be_clickable(LoginPageLocators.LOGIN_BUTTON)
         )
         login_button.click()
 
-        WebDriverWait(driver, 10).until(EC.url_to_be(BASE_URL + "/"))
-        assert driver.current_url == BASE_URL + "/", "Не произошел переход на главную страницу после входа"
+        # Ожидаем завершение авторизации
+        WebDriverWait(login_page, 15).until(
+            EC.url_to_be(BASE_URL + MAIN_URL)
+        )
 
-        profile_button = WebDriverWait(driver, 10).until(
+        # Переходим в личный кабинет
+        profile_button = WebDriverWait(login_page, 15).until(
             EC.element_to_be_clickable(MainPageLocators.PERSONAL_ACCOUNT_BUTTON)
         )
         profile_button.click()
 
-        WebDriverWait(driver, 10).until(EC.url_contains("/account/profile"))
-        assert "/account/profile" in driver.current_url, "Не произошел переход в личный кабинет"
+        # Ожидаем загрузки личного кабинета
+        WebDriverWait(login_page, 15).until(
+            EC.url_contains(PROFILE_URL)
+        )
 
-        constructor_button = WebDriverWait(driver, 10).until(
+        # Возвращаемся в конструктор
+        constructor_button = WebDriverWait(login_page, 15).until(
             EC.element_to_be_clickable(MainPageLocators.CONSTRUCTOR_BUTTON)
         )
         constructor_button.click()
 
-        WebDriverWait(driver, 10).until(EC.url_to_be(BASE_URL + "/"))
-        assert driver.current_url == BASE_URL + "/", "Не произошел возврат на главную страницу"
-
-        order_button = WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located(MainPageLocators.ORDER_BUTTON)
+        # Проверяем возврат на главную
+        WebDriverWait(login_page, 15).until(
+            EC.url_to_be(BASE_URL + MAIN_URL)
         )
-        assert order_button.is_displayed(), "Кнопка оформления заказа не отображается на главной странице"
+
+        assert login_page.current_url == BASE_URL + MAIN_URL

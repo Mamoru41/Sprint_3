@@ -4,7 +4,7 @@
 BASE_URL = "https://stellarburgers.nomoreparties.site"
 
 # Статические тестовые данные (для логина)
-TEST_EMAIL = "test123@mail.ru"
+TEST_EMAIL = "mamoru40@mail.ru"
 TEST_PASSWORD = "qwerty123"
 TEST_NAME = "Александр_Гладышев"
 

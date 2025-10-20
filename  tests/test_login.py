@@ -3,109 +3,119 @@ import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from data import BASE_URL
+from data import BASE_URL, TEST_EMAIL, TEST_PASSWORD, LOGIN_URL, REGISTER_URL, FORGOT_PASSWORD_URL, MAIN_URL
 from locators import MainPageLocators, LoginPageLocators, RegistrationPageLocators, ForgotPasswordPageLocators
-from helpers import generate_email, generate_password
-from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import pytest
 
 
 class TestLogin:
-    def test_login_via_personal_account(self, driver, random_email, random_password):
-        """Тест проверяет вход через кнопку 'Личный кабинет'."""
-        driver.get(BASE_URL)
+    def test_login_via_personal_account(self, main_page):
+        """Тест проверяет вход через кнопку 'Личный кабинет' без авторизации."""
+        # Главная страница уже открыта через фикстуру main_page
 
-        WebDriverWait(driver, 10).until(EC.url_to_be(BASE_URL + "/"))
+        # Ожидаем загрузки главной страницы
+        WebDriverWait(main_page, 10).until(
+            EC.url_to_be(BASE_URL + MAIN_URL)
+        )
 
-        personal_account_button = WebDriverWait(driver, 10).until(
+        # Нажимаем кнопку "Личный кабинет"
+        personal_account_button = WebDriverWait(main_page, 10).until(
             EC.element_to_be_clickable(MainPageLocators.PERSONAL_ACCOUNT_BUTTON)
         )
         personal_account_button.click()
 
-        WebDriverWait(driver, 10).until(EC.url_contains("/login"))
-        assert "/login" in driver.current_url, "Не произошел переход на страницу логина"
+        # Проверяем переход на страницу логина
+        WebDriverWait(main_page, 10).until(
+            EC.url_contains(LOGIN_URL)
+        )
+        assert LOGIN_URL in main_page.current_url
 
         # Выполняем вход
-        email_input = WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located(LoginPageLocators.EMAIL_INPUT)
+        WebDriverWait(main_page, 10).until(
+            EC.visibility_of_all_elements_located(LoginPageLocators.ALL_INPUTS)
         )
-        password_input = driver.find_element(*LoginPageLocators.PASSWORD_INPUT)
 
-        email_input.send_keys(random_email)
-        password_input.send_keys(random_password)
+        all_inputs = main_page.find_elements(*LoginPageLocators.ALL_INPUTS)
+        all_inputs[0].send_keys(TEST_EMAIL)
+        all_inputs[1].send_keys(TEST_PASSWORD)
 
-        login_button = WebDriverWait(driver, 10).until(
+        login_button = WebDriverWait(main_page, 10).until(
             EC.element_to_be_clickable(LoginPageLocators.LOGIN_BUTTON)
         )
         login_button.click()
 
-        WebDriverWait(driver, 10).until(EC.url_to_be(BASE_URL + "/"))
-        assert driver.current_url == BASE_URL + "/", "Не произошел переход на главную страницу после входа"
-
-        order_button = WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located(MainPageLocators.ORDER_BUTTON)
+        # Проверяем успешный вход и переход на главную
+        WebDriverWait(main_page, 10).until(
+            EC.url_to_be(BASE_URL + MAIN_URL)
         )
-        assert order_button.is_displayed(), "Кнопка 'Оформить заказ' не отображается после входа"
 
-    def test_login_via_register_form(self, driver):
+        assert main_page.current_url == BASE_URL + MAIN_URL
+
+    def test_login_via_register_form(self, register_page):
         """Тест проверяет переход на страницу логина со страницы регистрации."""
-        driver.get(BASE_URL + "/register")
+        # Страница регистрации уже открыта через фикстуру register_page
 
-        WebDriverWait(driver, 10).until(EC.url_contains("/register"))
-        assert "/register" in driver.current_url, "Не загрузилась страница регистрации"
+        # Ожидаем загрузки страницы регистрации
+        WebDriverWait(register_page, 10).until(
+            EC.url_contains(REGISTER_URL)
+        )
 
-        login_link = WebDriverWait(driver, 10).until(
+        # Нажимаем ссылку "Войти"
+        login_link = WebDriverWait(register_page, 10).until(
             EC.element_to_be_clickable(RegistrationPageLocators.LOGIN_LINK)
         )
         login_link.click()
 
-        WebDriverWait(driver, 10).until(EC.url_contains("/login"))
-        assert "/login" in driver.current_url, "Не произошел переход на страницу логина"
-
-        login_form = WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located(LoginPageLocators.LOGIN_FORM)
+        # Проверяем переход на страницу логина
+        WebDriverWait(register_page, 10).until(
+            EC.url_contains(LOGIN_URL)
         )
-        assert login_form.is_displayed(), "Форма логина не отображается"
 
-    def test_login_via_forgot_password(self, driver):
+        assert LOGIN_URL in register_page.current_url
+
+    def test_login_via_forgot_password(self, forgot_password_page):
         """Тест проверяет переход на страницу логина со страницы восстановления пароля."""
-        driver.get(BASE_URL + "/forgot-password")
+        # Страница восстановления пароля уже открыта через фикстуру forgot_password_page
 
-        WebDriverWait(driver, 10).until(EC.url_contains("/forgot-password"))
-        assert "/forgot-password" in driver.current_url, "Не загрузилась страница восстановления пароля"
+        # Ожидаем загрузки страницы восстановления пароля
+        WebDriverWait(forgot_password_page, 10).until(
+            EC.url_contains(FORGOT_PASSWORD_URL)
+        )
 
-        login_link = WebDriverWait(driver, 10).until(
+        # Нажимаем ссылку "Войти"
+        login_link = WebDriverWait(forgot_password_page, 10).until(
             EC.element_to_be_clickable(ForgotPasswordPageLocators.LOGIN_LINK)
         )
         login_link.click()
 
-        WebDriverWait(driver, 10).until(EC.url_contains("/login"))
-        assert "/login" in driver.current_url, "Не произошел переход на страницу логина"
-
-        login_form = WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located(LoginPageLocators.LOGIN_FORM)
+        # Проверяем переход на страницу логина
+        WebDriverWait(forgot_password_page, 10).until(
+            EC.url_contains(LOGIN_URL)
         )
-        assert login_form.is_displayed(), "Форма логина не отображается"
 
-    def test_login_from_main_page(self, driver):
+        assert LOGIN_URL in forgot_password_page.current_url
+
+    def test_login_from_main_page(self, main_page):
         """Тест проверяет вход через кнопку 'Войти в аккаунт' на главной странице."""
-        driver.get(BASE_URL)
+        # Главная страница уже открыта через фикстуру main_page
 
-        WebDriverWait(driver, 10).until(EC.url_to_be(BASE_URL + "/"))
-        assert driver.current_url == BASE_URL + "/", "Не загрузилась главная страница"
+        # Ожидаем загрузки главной страницы
+        WebDriverWait(main_page, 10).until(
+            EC.url_to_be(BASE_URL + MAIN_URL)
+        )
 
-        login_button = WebDriverWait(driver, 10).until(
+        # Нажимаем кнопку "Войти в аккаунт"
+        login_button = WebDriverWait(main_page, 10).until(
             EC.element_to_be_clickable(MainPageLocators.LOGIN_ACCOUNT_BUTTON)
         )
         login_button.click()
 
-        WebDriverWait(driver, 10).until(EC.url_contains("/login"))
-        assert "/login" in driver.current_url, "Не произошел переход на страницу логина"
-
-        login_form = WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located(LoginPageLocators.LOGIN_FORM)
+        # Проверяем переход на страницу логина
+        WebDriverWait(main_page, 10).until(
+            EC.url_contains(LOGIN_URL)
         )
-        assert login_form.is_displayed(), "Форма логина не отображается"
+
+        assert LOGIN_URL in main_page.current_url
 

@@ -1,8 +1,6 @@
 
-locators.py
-Original file line number 	Diff line number 	Diff line change
-@@ -3,58 +3,58 @@
 from selenium.webdriver.common.by import By
+
 
 class LoginPageLocators:
     """Локаторы для страницы логина"""
@@ -10,11 +8,13 @@ class LoginPageLocators:
     # Поля ввода
     EMAIL_INPUT = (By.XPATH, "//input[@type='text']")  # Поле email
     PASSWORD_INPUT = (By.XPATH, "//input[@type='password']")  # Поле пароля
+    ALL_INPUTS = (By.TAG_NAME, "input")  # Все поля ввода
 
     # Кнопки
     LOGIN_BUTTON = (By.XPATH, "//button[text()='Войти']")  # Кнопка "Войти"
     REGISTER_LINK = (By.XPATH, "//a[text()='Зарегистрироваться']")  # Ссылка на регистрацию
     FORGOT_PASSWORD_LINK = (By.XPATH, "//a[text()='Восстановить пароль']")  # Восстановление пароля
+
 
 class MainPageLocators:
     """Локаторы для главной страницы"""
@@ -28,6 +28,7 @@ class MainPageLocators:
     BUNS_TAB = (By.XPATH, "//span[text()='Булки']/..")  # Вкладка "Булки"
     SAUCES_TAB = (By.XPATH, "//span[text()='Соусы']/..")  # Вкладка "Соусы"
     FILLINGS_TAB = (By.XPATH, "//span[text()='Начинки']/..")  # Вкладка "Начинки"
+    CURRENT_TAB = (By.XPATH, "//div[contains(@class, 'tab_tab_type_current')]")  # Активная вкладка
 
     # Ингредиенты
     INGREDIENT = (By.XPATH, "//div[contains(@class, 'BurgerIngredient_ingredient__')]")  # Любой ингредиент
@@ -36,26 +37,33 @@ class MainPageLocators:
     # Оформление заказа
     ORDER_BUTTON = (By.XPATH, "//button[text()='Оформить заказ']")  # Кнопка оформления заказа
 
+
 class RegistrationPageLocators:
     """Локаторы для страницы регистрации"""
+
     NAME_INPUT = (By.XPATH, "(//input)[1]")  # Поле имени
     EMAIL_INPUT = (By.XPATH, "(//input)[2]")  # Поле email
     PASSWORD_INPUT = (By.XPATH, "(//input)[3]")  # Поле пароля
     REGISTER_BUTTON = (By.XPATH, "//button[text()='Зарегистрироваться']")  # Кнопка регистрации
     LOGIN_LINK = (By.XPATH, "//a[text()='Войти']")  # Ссылка на вход
+    ALL_INPUTS = (By.TAG_NAME, "input")  # Все поля ввода
+
 
 class ForgotPasswordPageLocators:
     """Локаторы для страницы восстановления пароля"""
 
     LOGIN_LINK = (By.XPATH, "//a[text()='Войти']")  # Ссылка на вход
 
+
 class ProfilePageLocators:
     """Локаторы для личного кабинета"""
 
     LOGOUT_BUTTON = (By.XPATH, "//button[text()='Выход']")  # Кнопка выхода
 
+
 class CommonLocators:
     """Общие локаторы для всех страниц"""
 
     MODAL = (By.XPATH, "//div[contains(@class, 'Modal_modal__')]")  # Модальное окно
+    MODAL_WINDOW = (By.XPATH, "//div[contains(@class, 'Modal_modal__')]")  # Модальное окно
     ORDER_SUCCESS_TEXT = (By.XPATH, "//*[contains(text(), 'орбитальной станции')]")  # Текст успешного заказа

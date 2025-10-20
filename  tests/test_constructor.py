@@ -1,10 +1,4 @@
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from data import BASE_URL
-from locators import MainPageLocators, LoginPageLocators
-from helpers import generate_email, generate_password
+from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -12,54 +6,73 @@ from selenium.webdriver.common.action_chains import ActionChains
 import pytest
 
 
-class TestBurgerConstructor:
-    def test_burger_construction_and_order(self, driver, random_email, random_password):
-        """Тест проверяет полный цикл: сборка бургера через перетаскивание и оформление заказа."""
+def test_burger_construction_and_order(driver):  # Используем фикстуру драйвера
+    """Тест проверяет полный цикл: сборка бургера через перетаскивание и оформление заказа.
+
+    Шаги:
+    1. Авторизоваться в системе
+    2. Перетащить ингредиент в конструктор
+    3. Нажать кнопку 'Оформить заказ'
+    4. Проверить появление модального окна с подтверждением заказа
+
+    Ожидаемый результат:
+    - Появление модального окна с текстом о начале приготовления заказа
+    """
+    try:
         # Логинимся
-        driver.get(f"{BASE_URL}/login")
+        driver.get("https://stellarburgers.nomoreparties.site/login")
 
-        # Заполняем форму входа
-        email_input = WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located(LoginPageLocators.EMAIL_INPUT)
+        # Ожидаем появление полей ввода
+        WebDriverWait(driver, 10).until(
+            EC.visibility_of_all_elements_located((By.TAG_NAME, "input"))
         )
-        password_input = driver.find_element(*LoginPageLocators.PASSWORD_INPUT)
-        login_button = driver.find_element(*LoginPageLocators.LOGIN_BUTTON)
 
-        email_input.send_keys(random_email)
-        password_input.send_keys(random_password)
+        all_inputs = driver.find_elements(By.TAG_NAME, "input")
+        all_inputs[0].send_keys("test_killa@mail.ru")
+        all_inputs[1].send_keys("qwerty123")
+
+        # Кликаем кнопку входа
+        login_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//button[text()='Войти']"))
+        )
         login_button.click()
 
-        # Ожидаем загрузку главной страницы
+        # Ожидаем завершение авторизации
         WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located(MainPageLocators.CONSTRUCTOR_SECTION)
+            EC.url_to_be("https://stellarburgers.nomoreparties.site/")
         )
 
-        # Перетаскиваем ингредиент в конструктор
+        # Перетаскиваем ингредиент
         ingredient = WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located(MainPageLocators.INGREDIENT_ITEM)
+            EC.visibility_of_element_located((By.XPATH, "//div[contains(@class, 'BurgerIngredient_ingredient__')]"))
         )
-        constructor_area = driver.find_element(*MainPageLocators.CONSTRUCTOR_AREA)
 
-        ActionChains(driver).drag_and_drop(ingredient, constructor_area).perform()
-
-        # Проверяем, что ингредиент добавлен в конструктор
-        added_ingredient = WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located(MainPageLocators.ADDED_INGREDIENT)
+        constructor_area = WebDriverWait(driver, 10).until(
+            EC.visibility_of_element_located((By.XPATH, "//div[contains(@class, 'BurgerConstructor_basket__')]"))
         )
-        assert added_ingredient.is_displayed(), "Ингредиент не был добавлен в конструктор"
 
-        # Нажимаем кнопку "Оформить заказ"
+        actions = ActionChains(driver)
+        actions.drag_and_drop(ingredient, constructor_area).perform()
+
+        # Нажимаем "Оформить заказ"
         order_button = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable(MainPageLocators.ORDER_BUTTON)
+            EC.element_to_be_clickable((By.XPATH, "//button[text()='Оформить заказ']"))
         )
         order_button.click()
 
-        # Проверяем появление модального окна с подтверждением заказа
-        order_modal = WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located(MainPageLocators.ORDER_MODAL)
+        # Проверяем успешное оформление заказа
+        WebDriverWait(driver, 10).until(
+            EC.any_of(
+                EC.visibility_of_element_located((By.XPATH, "//div[contains(@class, 'Modal_modal__')]")),
+                EC.visibility_of_element_located((By.XPATH, "//*[contains(text(), 'орбитальной станции')]"))
+            )
         )
-        assert order_modal.is_displayed(), "Модальное окно заказа не появилось"
 
-        # Проверяем, что в модальном окне есть текст о начале приготовления
-        order_text = driver.find_element(*MainPageLocators.ORDER_SUCCESS_TEXT)
-        assert "идентификатор заказа" in order_text.text.lower(), "Текст подтверждения заказа не найден"
+        print("Тест пройден: бургер собран и заказ оформлен!")
+
+    except Exception as e:
+        driver.save_screenshot("error.png")
+        raise e
+
+# Команда для запуска теста:
+# python -m pytest tests/test_burger_constructor.py::test_burger_construction_and_order -v

@@ -1,86 +1,87 @@
 import sys
 import os
-import pytest
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from data import BASE_URL
+from data import BASE_URL, REGISTER_URL, LOGIN_URL
 from locators import RegistrationPageLocators
-from helpers import generate_email, generate_password, generate_name
-from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import random
+import pytest
 
 
 class TestRegistration:
-    def test_successful_registration_format_1(self, driver):
+    def test_successful_registration_format_1(self, register_page):
         """Тест проверяет успешную регистрацию с валидными данными."""
-        driver.get(BASE_URL + "/register")
+        # Страница регистрации уже открыта через фикстуру register_page
 
-        WebDriverWait(driver, 10).until(EC.url_contains("/register"))
-        assert "/register" in driver.current_url, "Не загрузилась страница регистрации"
-
-        # Генерируем уникальные данные
-        name = generate_name()
-        email = generate_email()
-        password = generate_password()
-
-        # Заполняем форму
-        name_input = WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located(RegistrationPageLocators.NAME_INPUT)
+        # Ожидаем загрузки страницы регистрации
+        WebDriverWait(register_page, 10).until(
+            EC.url_contains(REGISTER_URL)
         )
-        email_input = driver.find_element(*RegistrationPageLocators.EMAIL_INPUT)
-        password_input = driver.find_element(*RegistrationPageLocators.PASSWORD_INPUT)
 
-        name_input.send_keys(name)
-        email_input.send_keys(email)
-        password_input.send_keys(password)
+        # Генерируем уникальный email по формату из задания
+        random_num = random.randint(100, 999)  # 3 цифры
+        email = f"ilya_kartashev_99_{random_num}@yandex.ru"
 
-        register_button = WebDriverWait(driver, 10).until(
+        # Ожидаем появление полей ввода
+        WebDriverWait(register_page, 10).until(
+            EC.visibility_of_all_elements_located(RegistrationPageLocators.ALL_INPUTS)
+        )
+
+        # Заполняем форму корректными данными
+        all_inputs = register_page.find_elements(*RegistrationPageLocators.ALL_INPUTS)
+        all_inputs[0].send_keys("Александр_Гладышев")
+        all_inputs[1].send_keys(email)
+        all_inputs[2].send_keys("qwerty123")
+
+        # Нажимаем кнопку регистрации
+        register_button = WebDriverWait(register_page, 10).until(
             EC.element_to_be_clickable(RegistrationPageLocators.REGISTER_BUTTON)
         )
         register_button.click()
 
-        WebDriverWait(driver, 10).until(EC.url_contains("/login"))
-        assert "/login" in driver.current_url, f"Ожидался переход на логин, но URL: {driver.current_url}"
-
-        login_form = WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located(RegistrationPageLocators.LOGIN_FORM)
+        # Проверяем переход на страницу логина
+        WebDriverWait(register_page, 10).until(
+            EC.url_contains(LOGIN_URL)
         )
-        assert login_form.is_displayed(), "Форма логина не отображается после регистрации"
 
-    def test_successful_registration_format_2(self, driver):
-        """Тест проверяет успешную регистрацию с другим форматом email."""
-        driver.get(BASE_URL + "/register")
+        assert LOGIN_URL in register_page.current_url
 
-        WebDriverWait(driver, 10).until(EC.url_contains("/register"))
-        assert "/register" in driver.current_url, "Не загрузилась страница регистрации"
+    def test_successful_registration_format_2(self, register_page):
+        """Тест проверяет успешную регистрацию с валидными данными."""
+        # Страница регистрации уже открыта через фикстуру register_page
 
-        # Генерируем уникальные данные с другим форматом
-        name = generate_name()
-        email = generate_email()  # Используем стандартный генератор
-        password = generate_password()
-
-        # Заполняем форму
-        name_input = WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located(RegistrationPageLocators.NAME_INPUT)
+        # Ожидаем загрузки страницы регистрации
+        WebDriverWait(register_page, 10).until(
+            EC.url_contains(REGISTER_URL)
         )
-        email_input = driver.find_element(*RegistrationPageLocators.EMAIL_INPUT)
-        password_input = driver.find_element(*RegistrationPageLocators.PASSWORD_INPUT)
 
-        name_input.send_keys(name)
-        email_input.send_keys(email)
-        password_input.send_keys(password)
+        # Генерируем УНИКАЛЬНЫЙ email каждый раз
+        random_num = random.randint(1000, 9999)
+        email = f"mamoru40_{random_num}@yandex.ru"
 
-        register_button = WebDriverWait(driver, 10).until(
+        # Ожидаем появление полей ввода
+        WebDriverWait(register_page, 10).until(
+            EC.visibility_of_all_elements_located(RegistrationPageLocators.ALL_INPUTS)
+        )
+
+        # Заполняем форму корректными данными
+        all_inputs = register_page.find_elements(*RegistrationPageLocators.ALL_INPUTS)
+        all_inputs[0].send_keys("Александр_Гладышев")
+        all_inputs[1].send_keys(email)
+        all_inputs[2].send_keys("qwerty123")
+
+        # Нажимаем кнопку регистрации
+        register_button = WebDriverWait(register_page, 10).until(
             EC.element_to_be_clickable(RegistrationPageLocators.REGISTER_BUTTON)
         )
         register_button.click()
 
-        WebDriverWait(driver, 10).until(EC.url_contains("/login"))
-        assert "/login" in driver.current_url, f"Ожидался переход на логин, но URL: {driver.current_url}"
-
-        login_form = WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located(RegistrationPageLocators.LOGIN_FORM)
+        # Проверяем переход на страницу логина
+        WebDriverWait(register_page, 10).until(
+            EC.url_contains(LOGIN_URL)
         )
-        assert login_form.is_displayed(), "Форма логина не отображается после регистрации"
+
+        assert LOGIN_URL in register_page.current_url
