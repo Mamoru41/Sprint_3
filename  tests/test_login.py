@@ -118,4 +118,3 @@ class TestLogin:
         )
 
         assert LOGIN_URL in main_page.current_url
-

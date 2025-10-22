@@ -1,4 +1,5 @@
-
+﻿  # Файл: locators.py
+# Описание всех локаторов для проекта Stellar Burgers
 from selenium.webdriver.common.by import By
 
 

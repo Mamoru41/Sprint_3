@@ -1,4 +1,4 @@
-﻿import pytest
+import pytest
 from selenium import webdriver
 from utils import generate_email, generate_password
 from data import BASE_URL
